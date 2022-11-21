@@ -4,16 +4,13 @@ import { QRCodeSVG } from 'qrcode.react';
 import { saveSvgAsPng } from 'save-svg-as-png';
 import { FormEvent, useRef, useState } from 'react';
 import { Canvg } from 'canvg';
-import Image from 'next/image';
 
 async function svgToDataURL(svg: string) {
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d');
-	if (!ctx) {
-		throw new Error('Could not get canvas context');
-	}
-	const x = await Canvg.fromString(ctx, svg);
-	x.start();
+	if (!ctx) throw new Error('Could not get canvas context');
+	const x = Canvg.fromString(ctx, svg);
+	x.start({ scaleWidth: 300, scaleHeight: 300 });
 	return canvas.toDataURL();
 }
 function download() {
@@ -28,7 +25,6 @@ export default function GenerateQR() {
 	const [value, setValue] = useState('');
 	const [loading, setLoading] = useState(false);
 	const input = useRef<HTMLInputElement>(null);
-	const [url, setUrl] = useState('');
 
 	const generateSVG = (e: FormEvent) => {
 		e.preventDefault();
@@ -51,7 +47,6 @@ export default function GenerateQR() {
 		const url = await svgToDataURL(svg.outerHTML);
 		const response = await fetch(url);
 		const blob = await response.blob();
-		setUrl(url);
 		const filesArray = [
 			new File([blob], 'altogic-qrcode.png', {
 				type: 'image/png',
@@ -114,7 +109,6 @@ export default function GenerateQR() {
 								QR Kodunu Paylaş
 							</button>
 						)}
-						{url && <Image width="250" height="250" draggable={false} src={url} alt="altogic qr code" />}
 					</>
 				)}
 			</div>
