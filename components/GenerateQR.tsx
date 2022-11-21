@@ -37,7 +37,9 @@ export default function GenerateQR() {
 	async function shareImage() {
 		const svg = document.getElementById('QRCode') as HTMLElement;
 		if (!svg) return;
-		const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml;charset=utf-8' });
+		const canvas = await html2canvas(svg);
+		const dataUrl = canvas.toDataURL();
+		const blob = await (await fetch(dataUrl)).blob();
 		const filesArray = [
 			new File([blob], 'altogic-qrcode.png', {
 				type: 'image/png',
