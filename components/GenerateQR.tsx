@@ -78,7 +78,7 @@ export default function GenerateQR() {
 								kaydediniz. Aksi takdirde QR kodunuz silinecektir ve tekrardan oluşturulamayacaktır.
 							</div>
 						</div>
-						<QRCodeSVG size={512} id="QRCode" className="w-full h-full md:w-[512px]" value={value} />
+						<QRCodeSVG size={1024} id="QRCode" className="w-full h-full md:w-[512px]" value={value} />
 						<button
 							className="w-full border min-h-[50px] transition border-gray-500 px-3 ring-2 rounded ring-transparent outline-none focus:active:ring-black active:ring-black ring-offset-2"
 							onClick={() => download('#QRCode', 'altogic-qrcode.png')}
