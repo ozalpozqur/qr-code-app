@@ -2,28 +2,45 @@ import { SpinnerCircular } from 'spinners-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { FormEvent, useRef, useState } from 'react';
 import { download, svgToDataURL } from '../helpers';
+import WarningAlert from './WarningAlert';
+import axios from '../libs/axios';
 
 export default function GenerateQR() {
 	const [value, setValue] = useState<null | string>(null);
 	const [loading, setLoading] = useState(false);
 	const input = useRef<HTMLInputElement>(null);
+	const [hasAlreadyWinError, setHasAlreadyWinError] = useState(false);
 
-	const submitHandler = (e: FormEvent) => {
+	const submitHandler = async (e: FormEvent) => {
 		e.preventDefault();
 		if (!input.current) return;
-
+		setValue(null);
 		setLoading(true);
-		setValue(generateQRValue(input.current.value));
+		setHasAlreadyWinError(false);
 
-		input.current.value = '';
-		input.current.blur();
+		const {
+			data: { code },
+		} = await axios.post('/api/add-user', {
+			appId: input.current.value,
+			userId: '123',
+			name: 'bla bla',
+			email: 'ozgurozalp1999@gmail.com',
+			profilePicture: '',
+		});
 
+		if (code === 'email_already_registered') {
+			setHasAlreadyWinError(true);
+		} else {
+			setValue(generateQRValue(input.current.value, 'bla bla'));
+			input.current.value = '';
+			input.current.blur();
+		}
 		setLoading(false);
 	};
 
-	const generateQRValue = (value: string) => {
+	const generateQRValue = (appId: string, userId: string) => {
 		const url = new URL(window.location.href);
-		return `${url.origin}/read-qr/${value}`;
+		return `${url.origin}/read-qr/${appId}/${userId}`;
 	};
 
 	async function shareImage() {
@@ -45,15 +62,15 @@ export default function GenerateQR() {
 
 	return (
 		<>
-			<form onSubmit={submitHandler} className="w-full items-center flex gap-2 h-[50px]">
+			<form onSubmit={submitHandler} className="w-full items-center flex gap-1 h-[50px]">
 				<input
-					className="border transition border-gray-500 px-3 h-full text-lg sm:text-2xl outline-none ring-2 rounded ring-transparent focus:ring-black ring-offset-2 flex-1"
+					className="border transition !border-gray-500 px-3 placeholder:text-[16px] h-full text-lg sm:text-2xl !outline-none ring-2 rounded ring-transparent focus:ring-black ring-offset-2 flex-1"
 					type="text"
 					ref={input}
 					maxLength={16}
 					minLength={16}
 					required
-					placeholder="APP ID'nizi giriniz"
+					placeholder="Altogic APP ID'nizi giriniz"
 				/>
 				<button
 					disabled={loading}
@@ -69,7 +86,18 @@ export default function GenerateQR() {
 				</button>
 			</form>
 			<div className="flex flex-col gap-3 sm:gap-6 items-center justify-center">
-				{value && (
+				{hasAlreadyWinError && (
+					<WarningAlert>
+						<p className="text-[18px] sm:text-xl">
+							Bu <strong>APP ID</strong> ile daha önceden bir <strong>SWAG KIT</strong> kazandınız.
+						</p>
+						<p className="text-[14px] sm:text-xl">
+							Lütfen başka bir <strong>APP ID</strong> ile tekrar deneyiniz veya SWAG KIT&apos;inizi
+							teslim almak için standımıza uğrayınız.
+						</p>
+					</WarningAlert>
+				)}
+				{value ? (
 					<>
 						<div className="bg-green-600 w-full p-3 text-white rounded divide-y divide-white/30">
 							<h3 className="text-xl sm:text-2xl mb-1">QR Kodunuz Oluşturulmuştur.</h3>
@@ -94,6 +122,8 @@ export default function GenerateQR() {
 							</button>
 						)}
 					</>
+				) : (
+					<div>Info gelecek</div>
 				)}
 			</div>
 		</>

@@ -6,4 +6,7 @@
     html, body, #__next {
         @apply h-full;
     }
+    .font-oswald {
+        font-family: 'Oswald', sans-serif;
+    }
 }
