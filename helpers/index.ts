@@ -19,9 +19,8 @@ export function download(selector: string, name: string, scale: number = 10) {
 	});
 }
 
-export async function getUser(userId: string) {
-	const { data, errors } = await altogic.db.model('users').filter(`userId == '${userId}'`).getSingle();
-
+export async function getUserByAppId(appId: string) {
+	const { data, errors } = await altogic.db.model('users').filter(`appId == '${appId}'`).getSingle();
 	return {
 		user: data as User,
 		errors,

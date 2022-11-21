@@ -4,12 +4,14 @@ import { FormEvent, useRef, useState } from 'react';
 import { download, svgToDataURL } from '../helpers';
 import WarningAlert from './WarningAlert';
 import axios from '../libs/axios';
+import ErrorAlert from './ErrorAlert';
 
 export default function GenerateQR() {
 	const [value, setValue] = useState<null | string>(null);
 	const [loading, setLoading] = useState(false);
 	const input = useRef<HTMLInputElement>(null);
 	const [hasAlreadyWinError, setHasAlreadyWinError] = useState(false);
+	const [hasNotFoundError, setHasNotFoundError] = useState(false);
 
 	const submitHandler = async (e: FormEvent) => {
 		e.preventDefault();
@@ -20,27 +22,23 @@ export default function GenerateQR() {
 
 		const {
 			data: { code },
-		} = await axios.post('/api/add-user', {
-			appId: input.current.value,
-			userId: '123',
-			name: 'bla bla',
-			email: 'ozgurozalp1999@gmail.com',
-			profilePicture: '',
-		});
+		} = await axios.post('/api/add-user', { appId: input.current.value });
 
 		if (code === 'email_already_registered') {
 			setHasAlreadyWinError(true);
+		} else if (code === 'not_found') {
+			setHasNotFoundError(true);
 		} else {
-			setValue(generateQRValue(input.current.value, 'bla bla'));
+			setValue(generateQRValue(input.current.value));
 			input.current.value = '';
 			input.current.blur();
 		}
 		setLoading(false);
 	};
 
-	const generateQRValue = (appId: string, userId: string) => {
+	const generateQRValue = (appId: string) => {
 		const url = new URL(window.location.href);
-		return `${url.origin}/read-qr/${appId}/${userId}`;
+		return `${url.origin}/read-qr/${appId}`;
 	};
 
 	async function shareImage() {
@@ -64,11 +62,11 @@ export default function GenerateQR() {
 		<>
 			<form onSubmit={submitHandler} className="w-full items-center flex gap-1 h-[50px]">
 				<input
-					className="border transition !border-gray-500 px-3 placeholder:text-[16px] h-full text-lg sm:text-2xl !outline-none ring-2 rounded ring-transparent focus:ring-black ring-offset-2 flex-1"
+					className="border transition !border-gray-500 px-3 h-full text-base sm:text-lg md:text-2xl !outline-none ring-2 rounded ring-transparent focus:ring-black ring-offset-2 flex-1"
 					type="text"
 					ref={input}
-					maxLength={16}
-					minLength={16}
+					maxLength={24}
+					minLength={24}
 					required
 					placeholder="Altogic APP ID'nizi giriniz"
 				/>
@@ -87,15 +85,27 @@ export default function GenerateQR() {
 			</form>
 			<div className="flex flex-col gap-3 sm:gap-6 items-center justify-center">
 				{hasAlreadyWinError && (
-					<WarningAlert>
-						<p className="text-[18px] sm:text-xl">
-							Bu <strong>APP ID</strong> ile daha önceden bir <strong>SWAG KIT</strong> kazandınız.
-						</p>
-						<p className="text-[14px] sm:text-xl">
-							Lütfen başka bir <strong>APP ID</strong> ile tekrar deneyiniz veya SWAG KIT&apos;inizi
-							teslim almak için standımıza uğrayınız.
-						</p>
+					<WarningAlert
+						title={
+							<>
+								Bu <strong>APP ID</strong> ile daha önceden bir <strong>SWAG KIT</strong> kazandınız.
+							</>
+						}
+					>
+						Lütfen başka bir <strong>APP ID</strong> ile tekrar deneyiniz veya SWAG KIT&apos;inizi teslim
+						almak için standımıza uğrayınız.
 					</WarningAlert>
+				)}
+				{hasNotFoundError && (
+					<ErrorAlert
+						title={
+							<>
+								Bu <strong>APP ID</strong> sistemimizde kayıtlı değildir.
+							</>
+						}
+					>
+						Lütfen başka bir <strong>APP ID</strong> ile tekrar deneyiniz.
+					</ErrorAlert>
 				)}
 				{value ? (
 					<>

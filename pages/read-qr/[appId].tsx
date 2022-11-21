@@ -3,8 +3,8 @@ import altogic from '../../libs/altogic';
 import Head from 'next/head';
 import { Player } from '@lottiefiles/react-lottie-player';
 import Logo from '../../components/Logo';
+import { getUserByAppId, updateUser } from '../../helpers';
 import Error from 'next/error';
-import { getUser, updateUser } from '../../helpers';
 
 interface Props {
 	isAuthenticated: boolean;
@@ -71,21 +71,21 @@ function AlreadyTakenMessage() {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
 	const { user: isAuthenticated } = await altogic.auth.getUserFromDBbyCookie(context.req, context.res);
-	const [appId, userId] = context.params?.ids as string[];
+	const { appId } = context.params as { appId: string };
 	let errorCode = null;
 	let alreadyTaken = false;
 
-	const { user, errors } = await getUser(userId);
+	const { user, errors } = await getUserByAppId(appId);
 
 	if (errors) {
-		console.log(JSON.stringify(errors, null, 2));
 		errorCode = errors.status;
 	} else if (user) {
 		if (isAuthenticated && !user.hasReceived) {
-			await updateUser(userId, { hasReceived: true, receivedAt: new Date().toISOString() });
+			await updateUser(user._id, { hasReceived: true, receivedAt: new Date().toISOString() });
 		}
-		console.log(user);
 		alreadyTaken = user.hasReceived;
+	} else {
+		errorCode = 404;
 	}
 
 	return {
