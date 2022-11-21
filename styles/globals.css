@@ -3,10 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-    html, body {
+    html, body, #__next {
         @apply h-full;
-    }
-    #__next {
-        @apply fixed inset-0;
     }
 }
