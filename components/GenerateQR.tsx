@@ -3,21 +3,33 @@ import { QRCodeSVG } from 'qrcode.react';
 // @ts-ignore
 import { saveSvgAsPng } from 'save-svg-as-png';
 import { FormEvent, useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
+import { Canvg } from 'canvg';
+import Image from 'next/image';
+
+async function svgToDataURL(svg: string) {
+	const canvas = document.createElement('canvas');
+	const ctx = canvas.getContext('2d');
+	if (!ctx) {
+		throw new Error('Could not get canvas context');
+	}
+	const x = await Canvg.fromString(ctx, svg);
+	x.start();
+	return canvas.toDataURL();
+}
+function download() {
+	const svg = document.getElementById('QRCode');
+	if (!svg) return;
+	saveSvgAsPng(svg, 'altogic-qrcode.png', {
+		scale: 10,
+	});
+}
 
 export default function GenerateQR() {
 	const [value, setValue] = useState('');
 	const [loading, setLoading] = useState(false);
 	const input = useRef<HTMLInputElement>(null);
-	const shareTarget = useRef<HTMLElement>(null);
+	const [url, setUrl] = useState('');
 
-	const download = () => {
-		const svg = document.getElementById('QRCode');
-		if (!svg) return;
-		saveSvgAsPng(svg, 'altogic-qrcode.png', {
-			scale: 10,
-		});
-	};
 	const generateSVG = (e: FormEvent) => {
 		e.preventDefault();
 		if (!input.current) return;
@@ -30,26 +42,25 @@ export default function GenerateQR() {
 
 	const configureQRValue = (value: string) => {
 		const url = new URL(window.location.href);
-		console.log(`${url.origin}/read-qr/${value}`);
 		setValue(`${url.origin}/read-qr/${value}`);
 	};
 
 	async function shareImage() {
 		const svg = document.getElementById('QRCode') as HTMLElement;
-		if (!svg) return;
-		const canvas = await html2canvas(svg);
-		const dataUrl = canvas.toDataURL();
-		const blob = await (await fetch(dataUrl)).blob();
+		if (!svg || !('share' in navigator)) return;
+		const url = await svgToDataURL(svg.outerHTML);
+		const response = await fetch(url);
+		const blob = await response.blob();
+		setUrl(url);
 		const filesArray = [
 			new File([blob], 'altogic-qrcode.png', {
 				type: 'image/png',
 				lastModified: new Date().getTime(),
 			}),
 		];
-		const shareData = {
+		await navigator.share({
 			files: filesArray,
-		};
-		await navigator.share(shareData);
+		});
 	}
 
 	return (
@@ -103,6 +114,7 @@ export default function GenerateQR() {
 								QR Kodunu Paylaş
 							</button>
 						)}
+						{url && <Image width="250" height="250" draggable={false} src={url} alt="altogic qr code" />}
 					</>
 				)}
 			</div>

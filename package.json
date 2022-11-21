@@ -14,6 +14,7 @@
     "@types/react-dom": "18.0.9",
     "@vercel/og": "^0.0.20",
     "altogic": "^2.3.5",
+    "canvg": "^4.0.1",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.4",
     "html2canvas": "^1.4.1",
