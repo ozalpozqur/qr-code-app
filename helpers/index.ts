@@ -7,7 +7,7 @@ export async function svgToDataURL(svg: string) {
 	const ctx = canvas.getContext('2d');
 	if (!ctx) throw new Error('Could not get canvas context');
 	const canvg = Canvg.fromString(ctx, svg);
-	canvg.start({ scaleWidth: 300, scaleHeight: 300 });
+	canvg.start();
 	return canvas.toDataURL();
 }
 export function download(selector: string, name: string, scale: number = 10) {
