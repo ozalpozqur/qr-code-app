@@ -1,44 +1,29 @@
 import { SpinnerCircular } from 'spinners-react';
 import { QRCodeSVG } from 'qrcode.react';
-// @ts-ignore
-import { saveSvgAsPng } from 'save-svg-as-png';
 import { FormEvent, useRef, useState } from 'react';
-import { Canvg } from 'canvg';
-
-async function svgToDataURL(svg: string) {
-	const canvas = document.createElement('canvas');
-	const ctx = canvas.getContext('2d');
-	if (!ctx) throw new Error('Could not get canvas context');
-	const x = Canvg.fromString(ctx, svg);
-	x.start({ scaleWidth: 300, scaleHeight: 300 });
-	return canvas.toDataURL();
-}
-function download() {
-	const svg = document.getElementById('QRCode');
-	if (!svg) return;
-	saveSvgAsPng(svg, 'altogic-qrcode.png', {
-		scale: 10,
-	});
-}
+import { download, svgToDataURL } from '../helpers';
 
 export default function GenerateQR() {
-	const [value, setValue] = useState('');
+	const [value, setValue] = useState<null | string>(null);
 	const [loading, setLoading] = useState(false);
 	const input = useRef<HTMLInputElement>(null);
 
-	const generateSVG = (e: FormEvent) => {
+	const submitHandler = (e: FormEvent) => {
 		e.preventDefault();
 		if (!input.current) return;
+
 		setLoading(true);
-		configureQRValue(input.current.value);
+		setValue(generateQRValue(input.current.value));
+
 		input.current.value = '';
 		input.current.blur();
+
 		setLoading(false);
 	};
 
-	const configureQRValue = (value: string) => {
+	const generateQRValue = (value: string) => {
 		const url = new URL(window.location.href);
-		setValue(`${url.origin}/read-qr/${value}`);
+		return `${url.origin}/read-qr/${value}`;
 	};
 
 	async function shareImage() {
@@ -60,7 +45,7 @@ export default function GenerateQR() {
 
 	return (
 		<>
-			<form onSubmit={generateSVG} className="w-full items-center flex gap-2 h-[50px]">
+			<form onSubmit={submitHandler} className="w-full items-center flex gap-2 h-[50px]">
 				<input
 					className="border transition border-gray-500 px-3 h-full text-lg sm:text-2xl outline-none ring-2 rounded ring-transparent focus:ring-black ring-offset-2 flex-1"
 					type="text"
@@ -86,18 +71,17 @@ export default function GenerateQR() {
 			<div className="flex flex-col gap-3 sm:gap-6 items-center justify-center">
 				{value && (
 					<>
-						<div className="bg-green-600 w-full p-3 text-white rounded">
-							<h3 className="text-xl sm:text-2xl">QR Kodunuz Oluşturulmuştur.</h3>
-							<div className="border-b border-white/40 h-[1px] my-2" />
-							<div className="text-base sm:text-lg text-justify">
+						<div className="bg-green-600 w-full p-3 text-white rounded divide-y divide-white/30">
+							<h3 className="text-xl sm:text-2xl mb-1">QR Kodunuz Oluşturulmuştur.</h3>
+							<div className="text-base sm:text-lg text-justify pt-1">
 								Lütfen QR kodunuzu ekran görüntüsü alarak veya aşağıdaki indirme butonuna tıklayarak
 								kaydediniz. Aksi takdirde QR kodunuz silinecektir ve tekrardan oluşturulamayacaktır.
 							</div>
 						</div>
-						<QRCodeSVG id="QRCode" className="w-full h-full md:w-[512px]" value={value} />
+						<QRCodeSVG size={512} id="QRCode" className="w-full h-full md:w-[512px]" value={value} />
 						<button
 							className="w-full border min-h-[50px] transition border-gray-500 px-3 ring-2 rounded ring-transparent outline-none focus:active:ring-black active:ring-black ring-offset-2"
-							onClick={download}
+							onClick={() => download('#QRCode', 'altogic-qrcode.png')}
 						>
 							QR Kodunu İndir
 						</button>
