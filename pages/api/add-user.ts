@@ -59,3 +59,5 @@ function isUserAlreadyRegistered(errors: APIError) {
 			(error.details.field === 'email' || error.details.field === 'userId' || error.details.field === 'appId')
 	);
 }
+
+function addUser() {}

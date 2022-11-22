@@ -1,20 +1,28 @@
 import { SpinnerCircular } from 'spinners-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { FormEvent, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { download, svgToDataURL } from '../helpers';
 import WarningAlert from './WarningAlert';
 import axios from '../libs/axios';
 import ErrorAlert from './ErrorAlert';
 
-export default function GenerateQR() {
-	const [value, setValue] = useState<null | string>(null);
+const isServer = typeof window === 'undefined';
+
+interface GenerateQRProps {
+	appId: string | null;
+	appURL: string;
+	code: string | null;
+}
+export default function GenerateQR({ appId, appURL, code }: GenerateQRProps) {
+	const [value, setValue] = useState<null | string>(
+		code && appId ? (code === 'success' ? generateQRValue(appId) : null) : null
+	);
 	const [loading, setLoading] = useState(false);
 	const input = useRef<HTMLInputElement>(null);
-	const [hasAlreadyWinError, setHasAlreadyWinError] = useState(false);
-	const [hasNotFoundError, setHasNotFoundError] = useState(false);
+	const [hasAlreadyWinError, setHasAlreadyWinError] = useState(code ? code === 'email_already_registered' : false);
+	const [hasNotFoundError, setHasNotFoundError] = useState(code ? code === 'not_found' : false);
 
-	const submitHandler = async (e: FormEvent) => {
-		e.preventDefault();
+	async function generateQR() {
 		if (!input.current) return;
 		setValue(null);
 		setLoading(true);
@@ -34,28 +42,15 @@ export default function GenerateQR() {
 			input.current.blur();
 		}
 		setLoading(false);
-	};
+	}
 
-	const generateQRValue = (appId: string) => {
-		const url = new URL(window.location.href);
+	async function submitHandler(e: FormEvent) {
+		e.preventDefault();
+		generateQR();
+	}
+	function generateQRValue(appId: string) {
+		const url = new URL(appURL ?? window.location.href);
 		return `${url.origin}/read-qr/${appId}`;
-	};
-
-	async function shareImage() {
-		const svg = document.getElementById('QRCode') as HTMLElement;
-		if (!svg || !('share' in navigator)) return;
-		const url = await svgToDataURL(svg.outerHTML);
-		const response = await fetch(url);
-		const blob = await response.blob();
-		const filesArray = [
-			new File([blob], 'altogic-qrcode.png', {
-				type: 'image/png',
-				lastModified: new Date().getTime(),
-			}),
-		];
-		await navigator.share({
-			files: filesArray,
-		});
 	}
 
 	return (
@@ -107,7 +102,7 @@ export default function GenerateQR() {
 						Lütfen başka bir <strong>APP ID</strong> ile tekrar deneyiniz.
 					</ErrorAlert>
 				)}
-				{value ? (
+				{value && (
 					<>
 						<div className="bg-green-600 w-full p-3 text-white rounded divide-y divide-white/30">
 							<h3 className="text-xl sm:text-2xl mb-1">QR Kodunuz Oluşturulmuştur.</h3>
@@ -123,7 +118,7 @@ export default function GenerateQR() {
 						>
 							QR Kodunu İndir
 						</button>
-						{'share' in navigator && (
+						{!isServer && 'share' in navigator && (
 							<button
 								className="w-full border min-h-[50px] transition border-gray-500 px-3 ring-2 rounded ring-transparent outline-none focus:active:ring-black active:ring-black ring-offset-2"
 								onClick={shareImage}
@@ -132,10 +127,25 @@ export default function GenerateQR() {
 							</button>
 						)}
 					</>
-				) : (
-					<div>Info gelecek</div>
 				)}
 			</div>
 		</>
 	);
+}
+
+async function shareImage() {
+	const svg = document.getElementById('QRCode') as HTMLElement;
+	if (!svg || !('share' in navigator)) return;
+	const url = await svgToDataURL(svg.outerHTML);
+	const response = await fetch(url);
+	const blob = await response.blob();
+	const filesArray = [
+		new File([blob], 'altogic-qrcode.png', {
+			type: 'image/png',
+			lastModified: new Date().getTime(),
+		}),
+	];
+	await navigator.share({
+		files: filesArray,
+	});
 }

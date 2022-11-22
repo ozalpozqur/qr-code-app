@@ -21,13 +21,12 @@ export default function ReadQR({ isAuthenticated, errorCode, alreadyTaken }: Pro
 			</Head>
 			<div className="h-full relative flex-col py-6 flex items-center justify-center">
 				{isAuthenticated ? (
-					<div>Almış</div>
+					<div>Daha önceden kazanmış</div>
 				) : alreadyTaken ? (
 					<AlreadyTakenMessage />
 				) : (
 					<CongratulatoryMessage />
 				)}
-
 				<Logo className="absolute bottom-5 h-16" />
 			</div>
 		</div>
@@ -62,7 +61,7 @@ function AlreadyTakenMessage() {
 		<>
 			<h1 className="text-4xl sm:text-6xl text-center font-oswald leading-normal sm:leading-[130%] relative z-10">
 				ZATEN SWAG KİT <br />
-				KAZANDINIZ
+				HEDİYENİZİ TESLİM ALDINIZ
 			</h1>
 			<Player autoplay loop src="/sad.json" />
 		</>

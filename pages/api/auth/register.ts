@@ -1,22 +1,23 @@
-import {NextApiRequest, NextApiResponse} from "next";
-import altogic from "../../../libs/altogic";
+import { NextApiRequest, NextApiResponse } from 'next';
+import altogic from '../../../libs/altogic';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "POST")
-        return res.status(405).json({ message:"Method not allowed" });
+	if (req.method !== 'POST') return res.status(405).json({ errors: { items: [{ message: 'Method not allowed' }] } });
+	const { email, password, name } = req.body;
 
-    const { email, password } = req.body;
-    const { user, session, errors } = await altogic.auth.signInWithEmail(
-        email,
-        password
-    );
+	const domain = email.split('@')[1];
 
-    if (errors)
-        return res.status(errors.status).json({ errors });
-    if (!user || !session)
-        return res.status(500).json({ errors: [{ message: "Something went wrong" }] });
+	if (domain.trim() !== 'altogic.com') {
+		return res.status(400).json({ errors: { items: [{ message: 'Invalid email' }] } });
+	}
 
-    altogic.auth.setSessionCookie(session.token, req, res);
-    altogic.auth.setSession(session);
-    res.status(200).json({ user, session });
+	const { user, session, errors } = await altogic.auth.signUpWithEmail(email, password, name);
+	if (errors) return res.status(errors.status).json({ errors });
+
+	if (session) {
+		altogic.auth.setSessionCookie(session.token, req, res);
+		altogic.auth.setSession(session);
+		return res.json({ user, session });
+	}
+	return res.json({ user });
 }

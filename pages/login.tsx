@@ -2,8 +2,12 @@ import { useRouter } from 'next/router';
 import { FormEvent, useState } from 'react';
 import type { APIError } from 'altogic';
 import Logo from '../components/Logo';
+import Link from 'next/link';
+import { GetServerSidePropsContext } from 'next';
+import altogic from '../libs/altogic';
+import Head from 'next/head';
 
-function Login() {
+export default function Login() {
 	const router = useRouter();
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -34,6 +38,9 @@ function Login() {
 
 	return (
 		<section className="flex flex-col items-center py-6 h-96 gap-4">
+			<Head>
+				<title>Login Page - Altogic</title>
+			</Head>
 			<Logo className="h-16" />
 			<form className="flex flex-col gap-2 w-full md:w-96" onSubmit={handleSubmit}>
 				<h1 className="self-start text-3xl font-bold">Login to your account</h1>
@@ -58,7 +65,10 @@ function Login() {
 					placeholder="Type your password"
 					required
 				/>
-				<div className="flex justify-end gap-4">
+				<div className="flex justify-between gap-4">
+					<Link className="text-indigo-600" href="/register">
+						Dont have an account?
+					</Link>
 					<button
 						type="submit"
 						className="border self py-2 px-3 border-gray-500 hover:bg-gray-500 hover:text-white transition shrink-0"
@@ -71,5 +81,19 @@ function Login() {
 		</section>
 	);
 }
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+	const { user } = await altogic.auth.getUserFromDBbyCookie(context.req, context.res);
 
-export default Login;
+	if (user) {
+		return {
+			redirect: {
+				destination: '/profile',
+				permanent: false,
+			},
+		};
+	}
+
+	return {
+		props: {},
+	};
+}
