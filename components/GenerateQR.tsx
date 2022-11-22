@@ -1,6 +1,6 @@
 import { SpinnerCircular } from 'spinners-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useRef, useState } from 'react';
 import { download, svgToDataURL } from '../helpers';
 import WarningAlert from './WarningAlert';
 import axios from '../libs/axios';
