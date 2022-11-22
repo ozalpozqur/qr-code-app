@@ -3,6 +3,7 @@ import altogic from '../libs/altogic';
 import type { User } from 'altogic';
 import Logo from '../components/Logo';
 import Head from 'next/head';
+import Link from 'next/link';
 
 interface ProfileProps {
 	user: User;
@@ -16,12 +17,12 @@ export default function Profile({ user }: ProfileProps) {
 			<h1 className="font-bold text-4xl md:text-7xl !leading-[140%]">
 				Hoş geldin <br /> {user.name}
 			</h1>
-			<a
+			<Link
 				className="border px-3 py-2 hover:bg-gray-500 hover:text-white text-lg transition"
 				href="/api/auth/logout"
 			>
 				Çıkış yap.
-			</a>
+			</Link>
 			<Logo className="absolute bottom-5 h-16" />
 		</section>
 	);
