@@ -9,7 +9,7 @@ interface HomeProps {
 	appURL: string;
 	code: string | null;
 }
-export default function Home({ appId, appURL, code }: HomeProps) {
+export default function Index({ appId, appURL, code }: HomeProps) {
 	return (
 		<section className="flex flex-col gap-4 sm:gap-6 py-4">
 			<Head>
